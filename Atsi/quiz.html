@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>30 个分岔，30 个你 · ATSI</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #ffffff;
+    --indigo: #6366F1;
+    --lilac: #A855F7;
+    --text: #1a1130;
+    --text-soft: rgba(26, 17, 48, 0.68);
+    --text-dim: rgba(26, 17, 48, 0.4);
+    --glass-bg: rgba(255, 255, 255, 0.55);
+    --glass-border: rgba(99, 102, 241, 0.16);
+    --glass-hover-border: rgba(99, 102, 241, 0.42);
+  }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+    overflow-x: hidden;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app {
+    position: relative;
+    min-height: 100vh;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  /* 烟雾背景（淡） */
+  .blob {
+    position: absolute;
+    pointer-events: none;
+    z-index: 0;
+    border-radius: 50%;
+    filter: blur(140px);
+    -webkit-filter: blur(140px);
+  }
+  .blob-1 {
+    top: 8%; left: -8%;
+    width: 55vw; height: 55vw;
+    max-width: 680px; max-height: 680px;
+    background: rgba(99, 102, 241, 0.22);
+    animation: drift-1 16s ease-in-out infinite;
+  }
+  .blob-2 {
+    bottom: 5%; right: -10%;
+    width: 55vw; height: 55vw;
+    max-width: 680px; max-height: 680px;
+    background: rgba(168, 85, 247, 0.22);
+    animation: drift-2 18s ease-in-out infinite;
+  }
+  @keyframes drift-1 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(30px, 20px) scale(1.06); } }
+  @keyframes drift-2 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-30px, -25px) scale(1.05); } }
+
+  /* LOGO */
+  .logo {
+    position: absolute;
+    top: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    font-family: "SF Mono", "JetBrains Mono", "Menlo", monospace;
+    font-size: clamp(13px, 1.3vw, 15px);
+    letter-spacing: 0.55em;
+    font-weight: 500;
+    background: linear-gradient(135deg, var(--indigo) 0%, var(--lilac) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    padding-left: 0.55em;
+    opacity: 0.85;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  /* 通用屏 */
+  .screen {
+    position: relative;
+    z-index: 2;
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8vh 6vw;
+  }
+  .screen[hidden] { display: none; }
+
+  /* === Quiz 屏 === */
+  .quiz-screen {
+    flex-direction: column;
+    padding-top: 48px;
+    padding-bottom: 60px;
+  }
+
+  /* LOGO 离顶距离也减小，整体顶部更紧凑 */
+
+  /* 顶部常驻邀请语 */
+  .quote {
+    width: 100%;
+    max-width: 720px;
+    text-align: center;
+    margin-bottom: clamp(36px, 6vh, 60px);
+    font-size: clamp(13px, 1.5vw, 16px);
+    line-height: 1.85;
+    letter-spacing: 0.08em;
+    color: var(--text-soft);
+    font-weight: 400;
+  }
+  .quote .hl {
+    background: linear-gradient(135deg, var(--indigo) 0%, var(--lilac) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 600;
+  }
+
+  .progress-wrap {
+    width: 100%;
+    max-width: 720px;
+    margin-bottom: clamp(36px, 7vh, 72px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .progress-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    letter-spacing: 0.25em;
+    color: var(--text-dim);
+    font-family: "SF Mono", "JetBrains Mono", monospace;
+  }
+  .progress-row .lbl { color: var(--text-soft); }
+  .progress-bar {
+    width: 100%;
+    height: 3px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--indigo), var(--lilac));
+    border-radius: 100px;
+    transition: width 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: 0 0 12px rgba(168, 85, 247, 0.5);
+  }
+
+  .question-wrap {
+    width: 100%;
+    max-width: 720px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: clamp(36px, 6vh, 56px);
+    transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .question-wrap.leaving {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  .question-wrap.entering {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  .question {
+    font-size: clamp(17px, 2vw, 22px);
+    font-weight: 500;
+    line-height: 1.6;
+    letter-spacing: 0.03em;
+    color: var(--text);
+    max-width: 600px;
+  }
+
+  .options {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .option {
+    width: 100%;
+    padding: 20px 26px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    color: var(--text);
+    font-size: clamp(14px, 1.5vw, 16px);
+    font-family: inherit;
+    line-height: 1.6;
+    text-align: left;
+    cursor: pointer;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    box-shadow:
+      0 4px 20px rgba(99, 102, 241, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+  .option .marker {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1.5px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "SF Mono", "JetBrains Mono", monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-soft);
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.4);
+  }
+  .option .text {
+    flex: 1;
+    padding-top: 3px;
+  }
+  .option:hover {
+    border-color: var(--glass-hover-border);
+    background: rgba(255, 255, 255, 0.75);
+    transform: translateY(-1px);
+    box-shadow:
+      0 8px 28px rgba(99, 102, 241, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  }
+  .option:hover .marker {
+    border-color: var(--indigo);
+    color: var(--indigo);
+    background: rgba(99, 102, 241, 0.06);
+  }
+  .option.selected {
+    border-color: transparent;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.95), rgba(168, 85, 247, 0.95));
+    color: white;
+    box-shadow:
+      0 12px 36px rgba(99, 102, 241, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    transform: translateY(-1px);
+  }
+  .option.selected .marker {
+    border-color: rgba(255, 255, 255, 0.5);
+    color: white;
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  /* CTA */
+  .cta {
+    padding: 17px 56px;
+    background: linear-gradient(135deg, var(--indigo) 0%, var(--lilac) 100%);
+    border: none;
+    border-radius: 100px;
+    color: white;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow:
+      0 10px 30px rgba(99, 102, 241, 0.3),
+      0 4px 12px rgba(168, 85, 247, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  }
+  .cta:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 14px 38px rgba(99, 102, 241, 0.42),
+      0 6px 16px rgba(168, 85, 247, 0.3);
+  }
+
+  /* 完成 loading */
+  .ending-content {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+  }
+  .ending-spinner {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 2px solid rgba(99, 102, 241, 0.12);
+    border-top-color: var(--lilac);
+    animation: spin 0.9s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .ending-text {
+    font-size: clamp(18px, 2.4vw, 24px);
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.08em;
+  }
+  .ending-sub {
+    font-size: 13px;
+    color: var(--text-soft);
+    letter-spacing: 0.1em;
+  }
+
+  @media (max-width: 600px) {
+    .screen { padding: 6vh 5vw; }
+    .quiz-screen { padding-top: 56px; padding-bottom: 40px; }
+    .splash-title { font-size: clamp(30px, 9vw, 44px); }
+    .question { font-size: clamp(15px, 4.5vw, 18px); }
+    .option { padding: 16px 20px; gap: 14px; }
+    .option .marker { width: 24px; height: 24px; font-size: 12px; }
+    .cta { padding: 15px 42px; font-size: 14px; }
+    .progress-wrap { margin-bottom: 32px; }
+  }
+</style>
+</head>
+<body>
+<main class="app">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+
+  <a class="logo" href="index.html">ATSI</a>
+
+  <!-- Quiz -->
+  <section class="screen quiz-screen" id="quiz">
+    <div class="quote">
+      接下来 30 个选择，会带你穿越到<br>
+      那个<span class="hl">未妥协的</span>、<span class="hl">另一种活法</span>的你
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-row">
+        <span class="lbl">PROGRESS</span>
+        <span><span id="progressNum">1</span> / 30</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <div class="question-wrap" id="questionWrap">
+      <h2 class="question" id="question"></h2>
+      <div class="options" id="options"></div>
+    </div>
+  </section>
+
+  <!-- Ending（短暂过渡） -->
+  <section class="screen" id="ending" hidden>
+    <div class="ending-content">
+      <div class="ending-spinner"></div>
+      <div class="ending-text">时空坐标计算中…</div>
+      <div class="ending-sub">即将带你抵达那个另一种活法的你</div>
+    </div>
+  </section>
+</main>
+
+<script>
+  // 风格代号: 0=躺平 / 1=自律 / 2=外向 / 3=随性
+  const QUESTIONS = [
+    // 维度 1: 虚浮与本真
+    { dim:1, q:'别人觉得你"应该"做某件事，你的反应是？', opts:[
+      ['哦，知道了（继续不做）。',0],
+      ['想想有没有道理，有道理就照做。',1],
+      ['那就做呗，免得被念叨。',2],
+      ['自己说了算，不被别人推着走。',3]
+    ]},
+    { dim:1, q:'面对旁人给你贴的各种标签，你会？', opts:[
+      ['默默收下，躺着刷手机，压根不当回事。',0],
+      ['笑笑收下，多个标签多份热闹。',2],
+      ['不太在意，自己舒服就行，懒得解释。',3]
+    ]},
+    { dim:1, q:'被熟人当面说"你变了"，你的第一反应？', opts:[
+      ['嗯一声，心里没什么波动。',0],
+      ['认真解释自己为什么变。',1],
+      ['笑笑过去，变就变呗。',3]
+    ]},
+    { dim:1, q:'朋友圈晒生活这件事，你？', opts:[
+      ['懒得发，发了也是转手就删。',0],
+      ['偶尔记录，认真写感受。',1],
+      ['经常发，要的就是热闹和点赞。',2]
+    ]},
+
+    // 维度 2: 混沌与微光
+    { dim:2, q:'心里乱成一团、怎么都捋不清的时候，你会？', opts:[
+      ['干脆躺平，刷剧吃零食，明天的事明天说。',0],
+      ['列个清单一项一项捋，不解决不罢休。',1],
+      ['抓个朋友出去溜达，边吃边吐槽就好了。',2],
+      ['找张纸随便写写，写完心里就轻一点。',3]
+    ]},
+    { dim:2, q:'发现自己最近状态很差、什么都不想做，你会？', opts:[
+      ['那就躺着呗，硬撑也没用。',0],
+      ['强迫自己早睡运动，把节奏拉回来。',1],
+      ['接受自己摆烂几天，等心情自己回来。',3]
+    ]},
+    { dim:2, q:'平淡日子里偶尔有的小确幸（一杯好咖啡、晚霞），你会？', opts:[
+      ['顺手记到日记本里，留个念想。',1],
+      ['拍下来发个朋友圈，分享一下。',2],
+      ['多停留一会儿，慢慢享受当下。',3]
+    ]},
+    { dim:2, q:'朋友跟你诉苦说看不到希望，你会？', opts:[
+      ['嗯嗯安慰两句，让他自己缓缓。',0],
+      ['拉他出去吃喝玩乐，转移注意力。',2],
+      ['陪在旁边，不评判也不催，听他讲。',3]
+    ]},
+
+    // 维度 3: 慵懒与清醒
+    { dim:3, q:'休息日不用忙碌，你会怎么安排自己？', opts:[
+      ['一觉睡到自然醒，被窝焊身上，能不下床绝不下床。',0],
+      ['给自己安排满满行程，运动、收拾、培养爱好。',1],
+      ['喜欢外出探店逛街，喜欢热闹，不习惯长时间宅家。',2],
+      ['跟着心情走，想躺就躺想动就动，不刻意约束自己。',3]
+    ]},
+    { dim:3, q:'一段时间没产出、没成就感，你会？', opts:[
+      ['摆烂呗，反正一时半会儿也回不来。',0],
+      ['找朋友约饭聊天，分散一下注意力。',2],
+      ['接受低谷期，等自己慢慢缓过来。',3]
+    ]},
+    { dim:3, q:'看到同龄人都在拼命赶进度、自我提升，你的反应？', opts:[
+      ['不想动，自己节奏比较重要。',0],
+      ['跟着卷一下，怕被甩开。',2],
+      ['想冲就冲，想歇就歇，不焦虑。',3]
+    ]},
+    { dim:3, q:'早起这件事，你的真实状态？', opts:[
+      ['闹钟响 8 遍，最后一秒才挣扎起床。',0],
+      ['雷打不动按时起，规律最重要。',1],
+      ['看心情，需要早起就早起，不强求。',3]
+    ]},
+
+    // 维度 4: 妄念与自持
+    { dim:4, q:'看到别人买了什么爆款，你会？', opts:[
+      ['看一眼，懒得跟风，反正用不上。',0],
+      ['研究一下性价比，必要才入手。',1],
+      ['也下单一个，跟风快乐谁懂。',2],
+      ['喜欢就买，不喜欢就算，不强求。',3]
+    ]},
+    { dim:4, q:'一个能让你赚一笔但有点风险的机会摆在面前，你会？', opts:[
+      ['评估清楚再决定，不冲动。',1],
+      ['拉朋友一起搞，热闹才有干劲。',2],
+      ['看眼缘，喜欢就试试。',3]
+    ]},
+    { dim:4, q:'双十一/购物节大促，你？', opts:[
+      ['全屏蔽，懒得算账。',0],
+      ['列清单按需购买，不超预算。',1],
+      ['跟朋友一起凑单，热闹中下单。',2]
+    ]},
+    { dim:4, q:'身边有人晒了一笔意外之财，你会？', opts:[
+      ['哦，看完继续刷。',0],
+      ['想想他怎么做到的，能不能复制。',1],
+      ['跟着兴奋，问怎么搞的。',2]
+    ]},
+
+    // 维度 5: 空寂与丰盈
+    { dim:5, q:'一个人独处的时候，你的状态是？', opts:[
+      ['太爽了，谁也别来打扰我。',0],
+      ['趁机充电学习，把待办清掉。',1],
+      ['受不了，必须找人说说话才行。',2],
+      ['挺自在，做点自己喜欢的事就够了。',3]
+    ]},
+    { dim:5, q:'周末没人约你，你会？', opts:[
+      ['谢天谢地，可以放心烂在床上。',0],
+      ['主动约朋友，不能让自己闲着。',2],
+      ['一个人也挺好，随便逛逛吃个饭。',3]
+    ]},
+    { dim:5, q:'独居/合租时，自己一个人的独处空间对你来说？', opts:[
+      ['越多越好，封闭式社恐天堂。',0],
+      ['规划好作息，独处时间用来精进自己。',1],
+      ['适度独处适度社交，舒服就行。',3]
+    ]},
+    { dim:5, q:'长假大家都出去玩，你？', opts:[
+      ['在家躺七天，体会真正的休息。',0],
+      ['安排好行程，去趟一直想去的地方。',1],
+      ['必须凑热闹，跟朋友一起出门。',2]
+    ]},
+
+    // 维度 6: 随性与分寸
+    { dim:6, q:'朋友提了个让你不太舒服的请求，你会？', opts:[
+      ['装没看见，回复都懒得回。',0],
+      ['直接拒绝，把理由讲清楚。',1],
+      ['硬着头皮答应，怕得罪人。',2],
+      ['委婉拒掉，关系还得维护。',3]
+    ]},
+    { dim:6, q:'饭局上有让你不舒服的话题被提起，你会？', opts:[
+      ['沉默低头吃菜。',0],
+      ['直接说不想聊这个。',1],
+      ['随口岔开，气氛别冷就行。',3]
+    ]},
+    { dim:6, q:'朋友越界打听你的私事，你会？', opts:[
+      ['不接话，转身走开。',0],
+      ['严肃说"这是我的私事"。',1],
+      ['笑着糊弄过去，下次保持距离。',3]
+    ]},
+    { dim:6, q:'同事/朋友总爱占你小便宜，你？', opts:[
+      ['算了，懒得计较。',0],
+      ['直接挑明，把话说清。',1],
+      ['也学着占回去，扯平就好。',2]
+    ]},
+
+    // 维度 7: 迷思与顿悟
+    { dim:7, q:'做选择的时候反复纠结，你通常？', opts:[
+      ['抛硬币，反正怎么选都后悔。',0],
+      ['列利弊清单，理性分析一波。',1],
+      ['问一圈朋友，听大家怎么说。',2],
+      ['跟直觉走，想多了反而乱。',3]
+    ]},
+    { dim:7, q:'一件事想不通、怎么都过不去，你会？', opts:[
+      ['不想了，睡一觉再说。',0],
+      ['必须刨根问底，搞明白才肯罢休。',1],
+      ['放一放，时间到了自然就懂。',3]
+    ]},
+    { dim:7, q:'点外卖怎么都选不出来吃啥，你会？', opts:[
+      ['看评分排序，按推荐选。',1],
+      ['拉朋友远程帮选，热闹一下。',2],
+      ['随便点一个，不纠结。',3]
+    ]},
+    { dim:7, q:'几个 offer 摆在面前难选，你？', opts:[
+      ['列对比表，按指标打分。',1],
+      ['找朋友/前辈聊一圈，再决定。',2],
+      ['选当下最想去的，不纠结后悔。',3]
+    ]},
+
+    // 维度 8: 轻慢与敬畏
+    { dim:8, q:'面对自己不太尊重的人，你会？', opts:[
+      ['能避就避，不接触就不消耗。',0],
+      ['该有的礼貌还是要有，公事公办。',1],
+      ['表面客气，心里一笑而过。',2],
+      ['平等对待，但不刻意凑近。',3]
+    ]},
+    { dim:8, q:'跟陌生人打交道，你的默认模式？', opts:[
+      ['能不说话就不说话。',0],
+      ['礼貌得体，把事办完。',1],
+      ['自来熟，先把人聊熟再说。',2]
+    ]},
+    { dim:8, q:'听到别人在背后议论你，你会？', opts:[
+      ['哦，假装没听见。',0],
+      ['找朋友吐两句，转头继续过日子。',2],
+      ['心里记一下，以后保持距离。',3]
+    ]},
+    { dim:8, q:'面对服务行业的工作人员（外卖员/服务员），你？', opts:[
+      ['不打招呼，对完订单走人。',0],
+      ['礼貌道谢，保持适当距离。',1],
+      ['平等聊几句，互相舒服。',3]
+    ]},
+
+    // 维度 9: 碎念与留白
+    { dim:9, q:'跟人聊天的时候，你更像？', opts:[
+      ['听众型选手，能不开口就不开口。',0],
+      ['输出型选手，喜欢把观点讲透彻。',1],
+      ['话痨担当，气氛全靠我撑。',2],
+      ['看场合，该说说、该听听。',3]
+    ]},
+    { dim:9, q:'心里有事的时候，你会？', opts:[
+      ['自己消化，不想跟人讲。',0],
+      ['见谁聊谁，倒完就轻松了。',2],
+      ['挑一两句重点说，剩下自己吞。',3]
+    ]},
+    { dim:9, q:'微信群聊里你的状态？', opts:[
+      ['长期潜水，能不说就不说。',0],
+      ['活跃分子，每条都接。',2],
+      ['看到感兴趣的才接，没兴趣不冒泡。',3]
+    ]},
+    { dim:9, q:'跟朋友吐槽的时候，你？', opts:[
+      ['简单两句结束，吐完就翻篇。',0],
+      ['完整复盘事情前因后果。',1],
+      ['反反复复讲，越讲越来劲。',2]
+    ]},
+
+    // 维度 10: 无常与安守
+    { dim:10, q:'生活突然出了变故，打乱原本的节奏，你会？', opts:[
+      ['瘫一会儿，缓两天再说。',0],
+      ['立马调整计划，重新规划路线。',1],
+      ['找朋友倾诉，散散心再面对。',2],
+      ['接受变化，慢慢适应就好。',3]
+    ]},
+    { dim:10, q:'计划好的事突然黄了，你的反应？', opts:[
+      ['立刻找替代方案，时间不能浪费。',1],
+      ['那就出门解压，吃点好的。',2],
+      ['哦，那就这样吧，没什么大不了。',3]
+    ]},
+    { dim:10, q:'突如其来的坏消息，你的第一反应？', opts:[
+      ['先躺下，反应不过来。',0],
+      ['冷静分析能做什么，列下一步。',1],
+      ['接受现实，下一步再说。',3]
+    ]},
+    { dim:10, q:'工作/生活节奏突变（搬家、换岗、分手），你？', opts:[
+      ['直接进入摆烂期，等事情自然过去。',0],
+      ['列清单一步步处理新局面。',1],
+      ['找朋友疯玩转移注意力。',2]
+    ]},
+
+    // 维度 11: 盲从与自洽
+    { dim:11, q:'大家都在做某件事，但你不太想做，你会？', opts:[
+      ['装看不见，没人能逼我动。',0],
+      ['仔细想想是不是自己的事，再决定。',1],
+      ['还是跟着做吧，不合群太尴尬。',2],
+      ['不做，自己开心更重要。',3]
+    ]},
+    { dim:11, q:'跟身边人观点不一样的时候，你会？', opts:[
+      ['不想吵，听听就过了。',0],
+      ['跟着附和，免得气氛尴尬。',2],
+      ['求同存异，谁也别说服谁。',3]
+    ]},
+    { dim:11, q:'朋友圈某个观点刷屏，你也跟风转发吗？', opts:[
+      ['懒得转，不参与。',0],
+      ['看大家都转，自己也跟一下。',2],
+      ['觉得有意思就转，不刻意站队。',3]
+    ]},
+    { dim:11, q:'周围都在追某个热门剧/网红/概念，你？', opts:[
+      ['自己先研究下值不值得花时间。',1],
+      ['跟着追，不能错过话题。',2],
+      ['想看就看，不刻意追也不刻意躲。',3]
+    ]},
+
+    // 维度 12: 浅尝与深耕
+    { dim:12, q:'面对感兴趣的新东西，你通常？', opts:[
+      ['看看别人玩，自己懒得动手。',0],
+      ['系统学习，要做就做精。',1],
+      ['立马入坑，凑个热闹再说。',2],
+      ['玩一阵看看喜不喜欢，再决定深不深入。',3]
+    ]},
+    { dim:12, q:'报兴趣班、学新技能这种事？', opts:[
+      ['想想就累，办了卡也是落灰。',0],
+      ['报一个就坚持到底，不能半途而废。',1],
+      ['拉朋友一起报，热闹才有动力。',2]
+    ]},
+    { dim:12, q:'一件事做了一半失去兴趣，你？', opts:[
+      ['直接弃坑，不勉强。',0],
+      ['既然开始了就硬着头皮做完。',1],
+      ['暂停一下，回头再看要不要继续。',3]
+    ]},
+    { dim:12, q:'看到一个新平台/新软件爆火，你？', opts:[
+      ['研究下功能，看是否真的有用。',1],
+      ['立马注册玩起来，怕错过。',2],
+      ['看朋友用得怎么样再决定要不要试。',3]
+    ]},
+
+    // 维度 13: 喧嚣与沉潜
+    { dim:13, q:'一群人热闹聚会，你的真实状态是？', opts:[
+      ['角落待着，巴不得早点散场。',0],
+      ['趁机观察学习，给自己积累人脉。',1],
+      ['中心人物，气氛不嗨我尴尬。',2],
+      ['玩得开心，但心里清楚自己要什么。',3]
+    ]},
+    { dim:13, q:'信息爆炸的环境里，你怎么应对？', opts:[
+      ['筛选有用的信息，做好整理。',1],
+      ['逐条吃瓜，一个不能落下。',2],
+      ['刷到啥看啥，不刻意找也不刻意躲。',3]
+    ]},
+    { dim:13, q:'大型展会/演唱会/集市这种场子，你？', opts:[
+      ['不去，太挤。',0],
+      ['去之前规划路线，目标明确。',1],
+      ['必须去，沉浸式感受氛围。',2]
+    ]},
+    { dim:13, q:'独自待一晚不刷手机不出门，你？', opts:[
+      ['没问题，正合我意。',0],
+      ['受不了，会主动制造点声响。',2],
+      ['挺好，正好沉淀一下自己。',3]
+    ]},
+
+    // 维度 14: 虚妄与清醒
+    { dim:14, q:'听到一个特别离谱但很多人信的消息，你会？', opts:[
+      ['不关我事，刷下一条。',0],
+      ['查证一下，搞清楚再说。',1],
+      ['发群里跟朋友讨论一波。',2],
+      ['心里打个问号，先不站队。',3]
+    ]},
+    { dim:14, q:'有人给你画大饼，你会？', opts:[
+      ['嗯嗯啊啊，转头就忘。',0],
+      ['仔细分析可行性，认真评估。',1],
+      ['笑着收下，自己心里有数。',3]
+    ]},
+    { dim:14, q:'看到很火的"成功秘诀/财富自由"教程，你？', opts:[
+      ['看一下底层逻辑，辨别真伪。',1],
+      ['转给朋友讨论一下，看大家怎么想。',2],
+      ['看个乐子，不全信也不全否。',3]
+    ]},
+    { dim:14, q:'朋友斩钉截铁说一件事是真的，但你心里存疑，你会？', opts:[
+      ['当场提出疑问，要求给证据。',1],
+      ['跟着附和，回头自己查。',2],
+      ['嗯嗯先听着，自己心里默默打个问号。',3]
+    ]},
+
+    // 维度 15: 庸常与灵光
+    { dim:15, q:'日子平平淡淡没什么波澜，你会？', opts:[
+      ['挺好，平静日子最舒服。',0],
+      ['必须找点新挑战，不能闲下来。',1],
+      ['没意思，必须出去找点乐子。',2],
+      ['平淡里找点小惊喜，自得其乐。',3]
+    ]},
+    { dim:15, q:'让你描述自己当下的生活？', opts:[
+      ['摆烂中，一天天混过去。',0],
+      ['一切按计划进行，效率拉满。',1],
+      ['平淡里有自己的小确幸。',3]
+    ]},
+    { dim:15, q:'突然来了灵感想做点新东西，你？', opts:[
+      ['立马动手做计划，落地实施。',1],
+      ['拉朋友一起聊，看怎么落地。',2],
+      ['顺势先玩一下，看能玩出什么。',3]
+    ]},
+    { dim:15, q:'别人问你"你的人生目标是什么"，你？', opts:[
+      ['有明确目标，正在分阶段推进。',1],
+      ['嘴上随便扯一个，应付过去。',2],
+      ['目标是过得舒服自在，慢慢来。',3]
+    ]}
+  ];
+
+  // 抽题：从 60 道随机抽 30 道
+  function pickQuestions() {
+    const arr = [...QUESTIONS];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr.slice(0, 30);
+  }
+
+  const TOTAL = 30;
+  let questions = pickQuestions();
+  let current = 0;
+  let answers = [];
+
+  const $quiz = document.getElementById('quiz');
+  const $ending = document.getElementById('ending');
+  const $progressFill = document.getElementById('progressFill');
+  const $progressNum = document.getElementById('progressNum');
+  const $questionWrap = document.getElementById('questionWrap');
+  const $question = document.getElementById('question');
+  const $options = document.getElementById('options');
+
+  renderQuestion();
+
+  function renderQuestion() {
+    const q = questions[current];
+    $progressNum.textContent = (current + 1);
+    $progressFill.style.width = ((current) / TOTAL * 100) + '%';
+
+    $question.textContent = q.q;
+    $options.innerHTML = '';
+
+    const labels = ['A', 'B', 'C', 'D'];
+    q.opts.forEach((opt, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'option';
+      btn.innerHTML = `
+        <span class="marker">${labels[idx]}</span>
+        <span class="text">${opt[0]}</span>
+      `;
+      btn.addEventListener('click', () => onAnswer(idx, opt[1], btn));
+      $options.appendChild(btn);
+    });
+
+    $questionWrap.classList.remove('leaving', 'entering');
+    $questionWrap.classList.add('entering');
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        $questionWrap.classList.remove('entering');
+      });
+    });
+  }
+
+  function onAnswer(optIdx, styleIdx, btnEl) {
+    [...$options.children].forEach(c => c.style.pointerEvents = 'none');
+    btnEl.classList.add('selected');
+
+    const q = questions[current];
+    answers.push({ dim: q.dim, q: q.q, opt: optIdx, style: styleIdx, text: q.opts[optIdx][0] });
+
+    $progressFill.style.width = ((current + 1) / TOTAL * 100) + '%';
+
+    setTimeout(() => {
+      $questionWrap.classList.add('leaving');
+      setTimeout(() => {
+        current++;
+        if (current >= TOTAL) {
+          finish();
+        } else {
+          renderQuestion();
+        }
+      }, 350);
+    }, 450);
+  }
+
+  function finish() {
+    $quiz.hidden = true;
+    $ending.hidden = false;
+    try {
+      localStorage.setItem('atsi_answers', JSON.stringify({
+        answers,
+        ts: Date.now()
+      }));
+    } catch (e) {}
+    setTimeout(() => {
+      window.location.href = 'result.html';
+    }, 1800);
+  }
+</script>
+</body>
+</html>
